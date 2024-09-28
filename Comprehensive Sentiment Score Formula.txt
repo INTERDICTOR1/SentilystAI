@@ -1,0 +1,27 @@
+Comprehensive Sentiment Score Formula
+
+    Calculate Sentiment Intensity for Each Article:
+        Assign a sentiment intensity score si​ to each article ii, where si​ ranges from -1 (very negative) to 1 (very positive). Neutral articles might score around 0.
+
+    Weight Articles:
+        Assign a weight wiwi​ to each article based on factors like recency or source credibility. The weighted sentiment intensity for each article is si×wi.
+
+    Apply Time Decay:
+        To account for the recency of the article, apply a time decay factor. Let ti​ be the time since the article was published (in days). You can use an exponential decay function: decayi=e−λt, where λ is the decay rate. The weighted and decayed sentiment intensity for each article is si×wi×decayi
+
+    Aggregate Scores:
+        Sum up the weighted, decayed sentiment intensities for all articles: Total Sentiment=∑(si×wi×decayi)
+
+    Normalize the Score:
+        To normalize, determine the maximum and minimum possible sentiment scores (based on historical data or predefined thresholds). Normalize the aggregated score to a desired range, e.g., [-1, 1]. Let maxscoremaxscore​ and minscoreminscore​ be these thresholds. The normalized score is:
+        Normalized Sentiment Score=Total Sentiment−minscoremaxscore−minscore×2−1
+        Normalized Sentiment Score=maxscore​−minscore​Total Sentiment−minscore​​×2−1
+        This ensures the score falls within the range [-1, 1].
+
+Summary of Steps:
+
+    Compute sentiment intensity si for each article.
+    Apply weighting wi.
+    Apply time decay decayi.
+    Sum up weighted, decayed intensities: Total Sentiment
+    Normalize the total score.

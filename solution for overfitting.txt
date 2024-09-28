@@ -1,0 +1,12 @@
+1.)Resampling of existing dataset
+Check the performance
+If does not improve try to get more balanced/negative,neutral articles
+
+2.)Class Weights in Loss Function:
+Assign higher weights to the negative and neutral classes during training. This will force the model to focus more on getting those predictions right.
+
+3.)Use More Diverse Data Types:(very new kind of solution)
+Expand your dataset with more examples of negative and neutral sentiment, especially those that relate to different contexts (not just market news but earnings calls, regulatory reports, etc.).
+
+4.)Regularization & Early Stopping:(implement with every solution)
+You may be seeing overfitting to the positive class due to the imbalance. Increase regularization (like dropout) and implement early stopping based on validation loss or recall for minority classes.

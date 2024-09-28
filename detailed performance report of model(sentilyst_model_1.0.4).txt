@@ -1,0 +1,138 @@
+Classification Report:
+              precision    recall  f1-score   support
+
+    negative       0.91      0.64      0.75       208
+     neutral       0.87      0.74      0.80       961
+    positive       0.90      0.96      0.93      3035
+
+    accuracy                           0.90      4204
+   macro avg       0.89      0.78      0.83      4204
+weighted avg       0.89      0.90      0.89      4204
+
+Confusion Matrix:
+[[ 134    4   70]
+ [   1  712  248]
+ [  13  105 2917]]
+
+Understanding the Classification Report and Confusion Matrix:
+
+The classification report and confusion matrix give you a detailed breakdown of how well your model is performing on each class (negative, neutral, positive). Let’s go over the key metrics and what they mean for your model.
+1. Classification Report:
+
+This report provides precision, recall, and F1-score for each class, along with the overall accuracy.
+Metric	Explanation
+Precision	The proportion of correct positive predictions (i.e., how many of the predicted labels were actually correct).
+Recall	The proportion of actual positives that were correctly predicted (i.e., how many true instances were captured).
+F1-score	The harmonic mean of precision and recall, giving a balanced score between the two.
+Support	The number of actual occurrences of the class in the dataset.
+
+Here's a breakdown of your model's performance:
+
+    Negative Class (208 samples):
+        Precision: 0.91 (91% of predicted negative labels were correct).
+        Recall: 0.64 (64% of actual negative instances were captured by the model).
+        F1-Score: 0.75 (Balance between precision and recall).
+        Interpretation: Your model is doing well in precision, but recall is lower, meaning it is missing some negative cases.
+
+    Neutral Class (961 samples):
+        Precision: 0.87 (87% of predicted neutral labels were correct).
+        Recall: 0.74 (74% of actual neutral instances were captured).
+        F1-Score: 0.80.
+        Interpretation: The model performs reasonably well on neutral samples, but there’s room for improvement in recall.
+
+    Positive Class (3035 samples):
+        Precision: 0.90 (90% of predicted positive labels were correct).
+        Recall: 0.96 (96% of actual positive instances were captured).
+        F1-Score: 0.93.
+        Interpretation: The model is doing very well with the positive class. Both precision and recall are high, indicating strong performance.
+
+    Overall Accuracy: 0.90 (The model is correct 90% of the time).
+
+Macro Average:
+
+    Macro Avg Precision: 0.89
+    Macro Avg Recall: 0.78
+    Macro Avg F1-Score: 0.83
+    Interpretation: Macro average treats all classes equally, which shows the average performance across all classes. It indicates that the model performs well overall, though the lower recall in the negative class is dragging the macro recall score down.
+
+Weighted Average:
+
+    Weighted Avg Precision: 0.89
+    Weighted Avg Recall: 0.90
+    Weighted Avg F1-Score: 0.89
+    Interpretation: The weighted average takes class imbalance into account by giving more weight to the performance on the larger classes. Since the positive class dominates the dataset, the weighted average is higher than the macro average.
+
+2. Confusion Matrix:
+
+The confusion matrix shows how many instances of each class were classified correctly and how many were misclassified as another class. Each row corresponds to the actual class, and each column corresponds to the predicted class.
+
+Here’s your confusion matrix:
+
+lua
+
+Confusion Matrix:
+[[ 134    4   70]    # Negative
+ [   1  712  248]    # Neutral
+ [  13  105 2917]]   # Positive
+
+    Negative Class (208 actual negatives):
+        134 were correctly classified as negative.
+        4 were incorrectly classified as neutral.
+        70 were incorrectly classified as positive.
+
+    Interpretation: There’s a significant number of negative samples (70) being misclassified as positive, which is why the recall for the negative class is lower.
+
+    Neutral Class (961 actual neutrals):
+        712 were correctly classified as neutral.
+        1 was incorrectly classified as negative.
+        248 were incorrectly classified as positive.
+
+    Interpretation: The model tends to confuse some neutral samples with positive samples, contributing to lower recall for the neutral class.
+
+    Positive Class (3035 actual positives):
+        2917 were correctly classified as positive.
+        105 were incorrectly classified as neutral.
+        13 were incorrectly classified as negative.
+
+    Interpretation: The positive class has the best performance, with only a small number of samples being misclassified as neutral or negative.
+
+Key Insights:
+
+    Positive Class: The model is performing very well on the positive class, with high precision and recall. This is expected since there are more positive samples in the dataset.
+
+    Negative Class: The model struggles the most with the negative class, especially in recall. Many negative samples are being misclassified as positive, which is a key area to improve.
+
+    Neutral Class: The performance on the neutral class is moderate. There’s a tendency for the model to confuse neutral with positive, leading to some misclassifications.
+
+How to Improve Performance:
+
+    Balance the Dataset:
+        Your dataset is imbalanced, with the positive class having far more samples than the negative or neutral classes. You can try balancing the dataset using techniques like:
+            Oversampling the negative and neutral classes.
+            Undersampling the positive class.
+
+    Adjust Class Weights:
+        Use class weights in the loss function to give more importance to the minority classes (negative and neutral). This can help improve the model’s recall on those classes.
+
+    Example with Trainer:
+
+    python
+
+    from torch.nn import CrossEntropyLoss
+    class_weights = torch.tensor([1.5, 1.0, 0.5]).to(device)  # Adjust the weights according to the class imbalance
+    loss_fn = CrossEntropyLoss(weight=class_weights)
+
+    Data Augmentation:
+        You can augment your data by generating more examples for the negative and neutral classes to make the model more robust in handling those cases.
+
+    Regularization:
+        To prevent overfitting, consider adding more regularization (e.g., dropout, weight decay) if the model is overfitting to the majority class.
+
+    Early Stopping:
+        Use early stopping to prevent overfitting if the model’s validation performance starts degrading after a certain point.
+
+Summary:
+
+    The model performs very well on the positive class but struggles with recall in the negative and neutral classes.
+    There’s room for improvement in balancing the performance across all classes, especially the negative class.
+    Consider balancing the dataset, adjusting class weights, or using data augmentation techniques to improve the model's performance on the minority classes.

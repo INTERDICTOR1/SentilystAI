@@ -1,0 +1,129 @@
+If you want to include historical data (past articles) in your dataset, you can modify the script to fetch articles from a specific date range. The AYLIEN API allows you to filter articles by publication date, so you can retrieve articles from the past to build a more comprehensive dataset.
+
+Here’s how you can modify the script to include historical data:
+Updated Script for Historical Data:
+
+python
+
+pip install aylien-news-api
+import aylien_news_api
+from aylien_news_api.rest import ApiException
+from pprint import pprint
+import pandas as pd
+import time
+import yfinance as yf
+import random
+from datetime import datetime
+
+# Initialize API credentials
+configuration = aylien_news_api.Configuration()
+configuration.api_key['X-AYLIEN-NewsAPI-Application-ID'] = 'YOUR_APP_ID'
+configuration.api_key['X-AYLIEN-NewsAPI-Application-Key'] = 'YOUR_APP_KEY'
+
+api_instance = aylien_news_api.DefaultApi(aylien_news_api.ApiClient(configuration))
+
+# Fetch a list of S&P 500 companies
+sp500 = yf.Ticker("^GSPC").constituents()
+
+# Get random companies from the list
+def get_random_companies(num_companies=150):
+    companies = random.sample(list(sp500.keys()), num_companies)
+    return companies
+
+# Convert company tickers to DBpedia links
+def ticker_to_dbpedia(ticker):
+    return f'http://dbpedia.org/resource/{ticker.replace(" ", "_")}'
+
+# Define a function to fetch articles with date range
+def fetch_articles(sentiment, company, from_date, to_date, page_size=100, max_articles=10000):
+    articles = []
+    opts = {
+        'entities_title_links_dbpedia': [ticker_to_dbpedia(company)],
+        'language': 'en',
+        'sentiment_body_polarity': sentiment,
+        'published_at_start': from_date.isoformat(),
+        'published_at_end': to_date.isoformat(),
+        'per_page': page_size,
+        'cursor': '*',
+    }
+
+    while len(articles) < max_articles:
+        try:
+            api_response = api_instance.list_stories(**opts)
+            articles.extend(api_response.stories)
+            if not api_response.next_page_cursor or len(articles) >= max_articles:
+                break
+            opts['cursor'] = api_response.next_page_cursor
+            time.sleep(1)  # Respect rate limits
+        except ApiException as e:
+            print(f"Exception when calling AYLIEN API: {e}")
+            break
+
+    return articles[:max_articles]
+
+# Function to gather articles and balance them by sentiment and date range
+def gather_balanced_articles(companies, from_date, to_date, target_count_per_sentiment=10000):
+    all_articles = []
+    sentiments = ['positive', 'negative', 'neutral']
+    for sentiment in sentiments:
+        for company in companies:
+            articles = fetch_articles(sentiment, company, from_date, to_date, max_articles=target_count_per_sentiment)
+            for article in articles:
+                all_articles.append({
+                    'title': article.title,
+                    'content': article.body,
+                    'sentiment': article.sentiment.body.polarity,
+                    'company': company,
+                    'published_at': article.published_at,
+                    'source': article.source.name,
+                })
+
+    return all_articles
+
+# Define the date range for historical data
+from_date = datetime(2015, 1, 1)  # Start date (e.g., January 1, 2015)
+to_date = datetime(2023, 1, 1)    # End date (e.g., January 1, 2023)
+
+# Fetch random companies
+random_companies = get_random_companies(50)  # Fetch 50 random companies
+
+# Fetch articles with historical data
+target_count = 100000  # Total target articles
+articles_per_sentiment_per_company = target_count // (3 * len(random_companies))
+
+articles = gather_balanced_articles(random_companies, from_date, to_date, target_count_per_sentiment=articles_per_sentiment_per_company)
+
+# Convert to DataFrame
+df = pd.DataFrame(articles)
+
+# Shuffle to ensure the dataset is well-mixed
+df = df.sample(frac=1).reset_index(drop=True)
+
+# Save the dataset to CSV
+df.to_csv('balanced_financial_news_dataset_with_history.csv', index=False)
+
+print(f"Saved {len(df)} articles to 'balanced_financial_news_dataset_with_history.csv'")
+
+Explanation:
+
+    Random Company Selection: The script automatically fetches random companies from the S&P 500 list using the yfinance package.
+    DBpedia Links: It converts the tickers into DBpedia links, which are then used to fetch relevant news articles.
+    Integration: This approach integrates random company selection with the AYLIEN API to gather the required balanced dataset.
+
+This setup should help automate the process of building your sentiment analysis dataset while maintaining diversity in company size and sentiment distribution.
+
+Key Changes:
+
+    Date Range Filtering: The script now includes from_date and to_date parameters to filter articles by their publication dates.
+    Historical Data: The script can fetch articles from as far back as 2015 (or any date you specify) to build a dataset with historical news.
+    Output File: The resulting dataset will be saved in a file named balanced_financial_news_dataset_with_history.csv.
+
+Instructions:
+
+    Set the Date Range: Adjust the from_date and to_date variables to define the historical period you’re interested in.
+    Random Company Selection: The script still randomly selects companies from the S&P 500 but fetches historical news data.
+    Run the Script: Execute the script in your Python environment, and it will generate a CSV file with balanced, historical financial news data.
+
+This approach should help you create a well-rounded dataset that includes both recent and historical news articles, providing a richer dataset for sentiment analysis.
+
+
